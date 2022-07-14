@@ -1,50 +1,23 @@
-#!groovy
-@Library('jenkins-shared-lib@main') _
-pipeline {
-	agent {
-    kubernetes {
-      yaml '''
-        apiVersion: v1
-        kind: Pod
-        spec:
-          containers:
-          - name: docker
-            image: docker:latest
-            command:
-            - cat
-            tty: true
-            volumeMounts:
-             - mountPath: /var/run/docker.sock
-               name: docker-sock
-          volumes:
-          - name: docker-sock
-            hostPath:
-              path: /var/run/docker.sock
-        '''
-    }
-	}
-	stages {
-    	stage('CI Pipeline') {
-    		steps {
-        		container('docker') {
-        			git branch: 'master', changelog: false, poll: false, url: 'https://github.com/avielb/rmqp-example.git'
-          script{
-            jenkinsSharedLibrary.docker_login()
-            sh "docker build -t theshahnis/k8s-project:consumer -f consumer/Dockerfile consumer/."
-            sh "docker build -t theshahnis/k8s-project:producer -f producer/Dockerfile producer/."
-            sh "docker push theshahnis/k8s_project:consumer"
-            sh "docker push theshahnis/k8s_project:producer"
+
+podTemplate(label: 'docker-agent', containers: [containerTemplate(name: 'docker', image: 'docker', command: 'cat', ttyEnabled: true)],
+  volumes: [hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock')]
+){
+    node('docker-agent') {
+        stage('Git clone') {
+            git 'https://github.com/avielb/rmqp-example.git'
+        }
+        stage('Build docker images') {
+            container('docker') {
+                sh "docker login -u theshahnis -p af3735a8-fc9f-4956-a017-5f48f7127c6e"
+                sh "docker build -f consumer/Dockerfile -t theshahnis/k8s-project:consumer consumer/."
+                sh "docker build -f producer/Dockerfile -t theshahnis/k8s-project:producer producer/."
             }
-        	}
-    	}
-    }
-  }
-    post {
-      	always {
-			container('docker') {
-			sh 'docker logout'
-			}
-      	}
+        }
+        stage('Push docker images') {
+            container('docker') {
+                sh "docker push theshahnis/k8s-project:consumer"
+                sh "docker push theshahnis/k8s-project:producer"
+            }
+        }
     }
 }
-
