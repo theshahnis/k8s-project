@@ -19,7 +19,7 @@ pipeline {
 	stages {
     	stage('CD Pipeline') {
     		steps {
-        			git branch: 'master', changelog: false, poll: false, url: 'https://github.com/keidar/DevOpsExpertsAdvanced.git'
+        			git branch: 'master', changelog: false, poll: false, url: 'https://github.com/theshahnis/k8s-project.git'
           script{
               sh 'apt-get install sudo'
               sh 'sudo apt-get install curl gpg'

@@ -30,10 +30,10 @@ pipeline {
         			git branch: 'master', changelog: false, poll: false, url: 'https://github.com/avielb/rmqp-example.git'
           script{
             jenkinsSharedLibrary.docker_login()
-            sh "docker build -t keidarb/k8s_project:consumer -f consumer/Dockerfile consumer/."
-            sh "docker build -t keidarb/k8s_project:producer -f producer/Dockerfile producer/."
-            sh "docker push keidarb/k8s_project:consumer"
-            sh "docker push keidarb/k8s_project:producer"
+            sh "docker build -t theshahnis/k8s-project:consumer -f consumer/Dockerfile consumer/."
+            sh "docker build -t theshahnis/k8s-project:producer -f producer/Dockerfile producer/."
+            sh "docker push theshahnis/k8s_project:consumer"
+            sh "docker push theshahnis/k8s_project:producer"
             }
         	}
     	}
